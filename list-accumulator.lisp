@@ -5,6 +5,8 @@
 
 ;;; TAIL-RECURSIVE LIST-EATERS
 
+
+
 ;;; Return a tail-recursive list-eater function.
 ;;;   FN should modify the accumulator ACC.
 ;;;   ACC-INIT specifies initial value for ACC.
@@ -27,24 +29,8 @@
 (defmacro anaphoric-list-accumulator (acc-init &body body)
   "Anaphoric wrapper for list-accumulator with smybol macrolet for ."
   `(lacc #'(lambda (it acc)
-             (macrolet ((operate (fn)
-                          `(setf acc (funcall ,fn acc it))))
-               (symbol-macrolet ((op          operate)
-                                 (increment   (incf acc))
-                                 (inc         increment)
-                                 (decrement   (decf acc))
-                                 (dec         decrement)
-                                 (collect     (push it acc))
-                                 (collect-new (pushnew it acc))
-                                 (sum         (op #'+))
-                                 (add         sum)
-                                 (subtract    (op #'-)) 
-                                 (sub         subtract)
-                                 (multiply    (op #'*))
-                                 (mult        multiply)
-                                 (mul         multiply)
-                                 (divide      (op #'/))
-                                 (div         divide))
+             (macrolet (,@lacc::*macrolets*)
+               (symbol-macrolet (,@lacc::*symbols*)
                  ,@body)))
          ,acc-init))
 

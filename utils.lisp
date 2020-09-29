@@ -20,3 +20,43 @@
        (macrolet ((rec (&rest args)
                     `(,',name ,@args)))
          ,@body))))
+
+#| Define Macros to be local to anaphoric-list-accumulator |#
+
+
+(defvar *macrolets* nil
+  "Hold macrolets local to ANAPHORIC-LIST-ACCUMULATOR.")
+
+(defvar *symbol-macrolets* nil
+  "Hold symbol-macrolets local to ANAPHORIC-LIST-ACCUMULATOR.")
+
+(defun pushnews (obj &rest args)
+  "PUSHNEW all items in ARGS to OBJ."
+  (dolist (arg args) (pushnew arg obj)))
+
+(defmacro alacc-macrolets (&rest args)
+  `(lacc::pushnews lacc::*macrolets* ,@args))
+
+(defmacro alacc-symbols (&rest args)
+  `(lacc::pushnews lacc::*symbol-macrolets* ,@args))
+
+(alacc-macrolets
+    (operate (fn) `(setf acc (funcall ,fn acc it))))
+
+(alacc-symbols
+    (op          operate)
+    (increment   (incf acc))
+    (inc         increment)
+    (decrement   (decf acc))
+    (dec         decrement)
+    (collect     (push it acc))
+    (collect-new (pushnew it acc))
+    (sum         (op #'+))
+    (add         sum)
+    (subtract    (op #'-)) 
+    (sub         subtract)
+    (multiply    (op #'*))
+    (mult        multiply)
+    (mul         multiply)
+    (divide      (op #'/))
+    (div         divide))
