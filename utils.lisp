@@ -23,7 +23,6 @@
 
 #| Define Macros to be local to anaphoric-list-accumulator |#
 
-
 (defvar *macrolets* nil
   "Hold macrolets local to ANAPHORIC-LIST-ACCUMULATOR.")
 
