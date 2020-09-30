@@ -3,38 +3,42 @@
 (in-package #:list-accumulator)
 (proclaim '(optimize))
 
-;;; TAIL-RECURSIVE LIST-EATERS
+;;; Typical named-lambda/alambda convention.
+;;;   Can self reference by calling NAME
+(defmacro named-lambda (name lambda-list &body body)
+  "Return a recursive lambda callable from fn-namespace."
+  `(labels ((,name ,lambda-list ,@body)) #',name))
+
+;;; Bind NAMED-LAMBDA to a GENSYM. Allow self-reference
+;;;   with REC symbol-macrolet. Can CALL
+(defmacro genlambda (lambda-list &body body)
+  "Bind a NAMED-LAMBDA to a GENSYM. Call REC to recur."
+  (let ((name (gensym)))
+    `(named-lambda ,name ,lambda-list
+       (macrolet ((rec (&rest args) `(,',name ,@args)))
+         ,@body))))
 
 
 
 ;;; Return a tail-recursive list-eater function.
-;;;   FN should modify the accumulator ACC.
 ;;;   ACC-INIT specifies initial value for ACC.
-(defun list-accumulator (fn &optional acc-init)
+;;;   BODY is inside an implicit PROGN which modifies
+;;;   ACC to be passed to next recursion.
+;;;   Local macros defined in *MACROLACCS* and
+;;;   *SYMBOL-MACROLACCS* are defined in file
+;;;   macrolets.lisp and are user-extendable.
+(defmacro list-accumulator (acc-init &rest body)
   "Return a recursive lambda for recurring on cdrs."
-  (genlambda (lst &optional (acc acc-init))
+  `(genlambda (lst &optional (acc ,acc-init))
        (if lst
-           ;; If LST is not nil, recur on CDR.
            (rec (cdr lst)
-                (funcall fn
-                         (car lst)
-                         acc))
-           ;; Return ACC at end of list.
+                (progn (macrolet (,@*macrolaccs*)
+                         (symbol-macrolet (,@*symbol-macrolaccs*)
+                           ,@body
+                           acc))))
            acc)))
 
-;;; Create a LACC with anaphoric reference to
-;;;   (CAR LST) as IT and the accumulator, ACC.
-;;;   The BODY will comprise the contents of the
-;;;   FN in LACC.
-(defmacro anaphoric-list-accumulator (acc-init &body body)
-  "Anaphoric wrapper for list-accumulator with smybol macrolet for ."
-  `(lacc #'(lambda (it acc)
-             (macrolet (,@lacc::*macrolets*)
-               (symbol-macrolet (,@lacc::*symbols*)
-                 ,@body)))
-         ,acc-init))
-
-;;; Wrapper for ALACC to embed within DEFUN or DEFMACRO.
+;;; Wrapper for LIST-ACCUMULATOR.
 (defmacro accumulate-from-list (lst acc-init &body body)
   "Call a function to recur on CDRs of LST."
-  `(funcall (anaphoric-list-accumulator ,acc-init ,@body) ,lst))
+  `(funcall (list-accumulator ,acc-init ,@body) ,lst))
