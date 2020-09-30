@@ -1,16 +1,18 @@
 ;;;; package.lisp
 
 (defpackage #:list-accumulator
-  (:nicknames :lacc)
+  (:nicknames :lacc :accl)
 
   (:use #:cl)
 
   (:export
 
-   ;; utils
-   :named-lambda :genlamda
-
-   ;; list-accumulator and alias from aliases
-   :list-accumulator :lacc
-   :anaphoric-list-accumulator :alacc
+   ;; SYM                ALIAS
+   :named-lambda         :alambda
+   :genlamda             :ulambda
+   :*macrolaccs*
+   :*symbol-macrolaccs*
+   :macrolacc
+   :symbol-macrolacc
+   :list-accumulator     :lacc
    :accumulate-from-list :accl))

@@ -4,11 +4,9 @@
   :description "Provides utilities for producing tail-recursive list eaters fast."
   :author "MRCO <angryspacefungus@gmail.com"
   :license  "GPL 3.0"
-  :version "0.0.1"
+  :version "0.0.2"
   :serial t
   :components ((:file "package")
-               (:file "utils")
-               (:file "list-accumulator"
-                :depends-on ("package" "utils"))
-               (:file "aliases"
-                :depends-on ("list-accumulator"))))
+               (:file "macrolets"        :depends-on ("package"))
+               (:file "list-accumulator" :depends-on ("macrolets"))
+               (:file "aliases"          :depends-on ("list-accumulator"))))

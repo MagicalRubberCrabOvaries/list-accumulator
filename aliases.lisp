@@ -9,6 +9,7 @@
   `(defmacro ,new (&rest args)
      `(,',old ,@args)))
 
+(alias alambda named-lambda)
+(alias ulambda genlambda)
 (alias lacc list-accumulator)
-(alias alacc anaphoric-list-accumulator)
 (alias accl accumulate-from-list)
