@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:list-accumulator
-  (:nicknames :lacc :accl)
+  (:nicknames :lacc)
 
   (:use #:cl)
 

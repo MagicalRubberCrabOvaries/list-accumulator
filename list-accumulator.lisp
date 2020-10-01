@@ -18,8 +18,6 @@
        (macrolet ((rec (&rest args) `(,',name ,@args)))
          ,@body))))
 
-
-
 ;;; Return a tail-recursive list-eater function.
 ;;;   ACC-INIT specifies initial value for ACC.
 ;;;   BODY is inside an implicit PROGN which modifies
@@ -30,15 +28,37 @@
 (defmacro list-accumulator (acc-init &rest body)
   "Return a recursive lambda for recurring on cdrs."
   `(genlambda (lst &optional (acc ,acc-init))
-       (if lst
-           (rec (cdr lst)
-                (progn (macrolet (,@*macrolaccs*)
-                         (symbol-macrolet (,@*symbol-macrolaccs*)
-                           ,@body
-                           acc))))
-           acc)))
+      (macrolet (,@*common-macrolets*
+                 ,@*macrolaccs*)
+        (symbol-macrolet (,@*common-symbol-macrolets*
+                          ,@*symbol-macrolaccs*)
+            (if lst
+                (rec (cdr lst) (progn ,@body acc))
+                acc))))))
 
 ;;; Wrapper for LIST-ACCUMULATOR.
 (defmacro accumulate-from-list (lst acc-init &body body)
-  "Call a function to recur on CDRs of LST."
+  "Recur on CDRs of LST using LACC DSL."
   `(funcall (list-accumulator ,acc-init ,@body) ,lst))
+
+#| Return a tail-recursive tree-eater function.
+   ACC-INIT specifies initial value for ACC
+   BODY is inside a BLOCK (NIL) which can be
+      returned from with the return macro. |#
+(defmacro tree-accumulator (acc-init &body body)
+  `(genlambda (tree &optional (acc acc-init))
+      (macrolet (,@*common-macrolets*
+                 ,@*macrotraccs*)
+        (symbol-macrolet (,@*common-macrolets*
+                          ,@*symbol-macrotraccs*)
+          (if (atom tree)
+              acc
+              (block nil
+                ,@body
+                (setf acc (rec (car tree) acc))
+                (rec (cdr tree) acc)))))))
+
+;; Wrapper for TREE-ACCUMULATOR.
+(defmacro accumulate-from-tree (tree acc-init &body body)
+  "Walk TREE using TRACC DSL."
+  `(funcall (tree-accumulator ,acc-init ,@body) ,tree))
